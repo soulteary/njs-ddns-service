@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+
+  ngx-ddns-client:
+    image: nginx:1.21.1-alpine
+    volumes:
+       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+       - ./app.js/:/etc/nginx/njs/app.js:ro
+    environment:
+      - DNS_CF_USER=yourname@company.ltd
+      - DNS_CF_TOKEN=YOUR_API_TOKEN
+      - DNS_ZONE_ID=YOUR_ZONE_ID
+      - DNS_RECORD_NAME=ngx-ddns.yourdomain.ltd
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
+      - NGINX_ENTRYPOINT_QUIET_LOGS=1
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=20"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=1"
+      - "traefik.http.middlewares.ratelimit.ratelimit.period=1m"
+
+      - "traefik.http.routers.ngx-ddns-www.middlewares=ratelimit"
+      - "traefik.http.routers.ngx-ddns-www.entrypoints=http"
+      - "traefik.http.routers.ngx-ddns-www.rule=Host(`ddns.lab.io`)"
+
+      - "traefik.http.routers.ngx-ddns-ssl.middlewares=ratelimit"
+      - "traefik.http.routers.ngx-ddns-ssl.entrypoints=https"
+      - "traefik.http.routers.ngx-ddns-ssl.tls=true"
+      - "traefik.http.routers.ngx-ddns-ssl.rule=Host(`ddns.lab.io`)"
+
+      - "traefik.http.services.ngx-ddns-backend.loadbalancer.server.scheme=http"
+      - "traefik.http.services.ngx-ddns-backend.loadbalancer.server.port=80"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  traefik:
+    external: true
+
