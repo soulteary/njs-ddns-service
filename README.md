@@ -10,4 +10,4 @@ Use NJS to implement DDNS service
 ## Case 2 ( Any Client + Private Server + Public DNS Service)
 
 - [View Source](./case2)
-- [Blog](#)
+- [Blog](https://soulteary.com/2021/08/02/use-nginx-to-provide-ddns-service-part-2.html)
