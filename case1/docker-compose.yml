@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+
+  ngx-ddns-client:
+    image: nginx:1.21.1-alpine
+	ports:
+       - 8080:80
+    volumes:
+       - ./nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+       - ./app.js/:/etc/nginx/njs/app.js:ro
+    environment:
+      - DNS_CF_USER=yourname@company.ltd
+      - DNS_CF_TOKEN=YOUR_API_TOKEN
+      - DNS_ZONE_ID=YOUR_ZONE_ID
+      - DNS_RECORD_NAME=ngx-ddns.yourdomain.ltd
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
+      - NGINX_ENTRYPOINT_QUIET_LOGS=1
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://localhost"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  traefik:
+    external: true
